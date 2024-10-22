@@ -1,4 +1,3 @@
-```markdown
 # Codebase Documentation
 
 ## 1. Overall Structure
@@ -217,5 +216,4 @@ sequenceDiagram
     TripRepository-->>TripFilterStrategy: return trips
     TripFilterStrategy-->>TripFilterStrategyProvider: return filtered trips
     TripFilterStrategyProvider-->>Client: return filtered trips
-```
 ```
