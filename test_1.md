@@ -1,5 +1,3 @@
-# markdown_testing
-
 # Comprehensive Documentation for the Codebase
 
 ## 1. Overall Structure
