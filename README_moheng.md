@@ -22,7 +22,7 @@ This project is designed to provide personalized travel recommendations based on
 ![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-kv8YgzhLnngsTNFN8trPDil2/user-hS61ZsZAYtg5kQFwwsXdahCO/img-iCBQIru17mAFztw7ktnyHv9I.png?st=2024-10-31T11%3A00%3A16Z&se=2024-10-31T13%3A00%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2024-10-31T01%3A19%3A25Z&ske=2024-11-01T01%3A19%3A25Z&sks=b&skv=2024-08-04&sig=aU7G517F8bUZt0gk72s7508SEIB/9oH9qK5w2GptP04%3D)
 
 
-<img src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-kv8YgzhLnngsTNFN8trPDil2/user-hS61ZsZAYtg5kQFwwsXdahCO/img-iCBQIru17mAFztw7ktnyHv9I.png?st=2024-10-31T11%3A00%3A16Z&se=2024-10-31T13%3A00%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2024-10-31T01%3A19%3A25Z&ske=2024-11-01T01%3A19%3A25Z&sks=b&skv=2024-08-04&sig=aU7G517F8bUZt0gk72s7508SEIB/9oH9qK5w2GptP04%3D" width="200" height="400"/>
+<img src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-kv8YgzhLnngsTNFN8trPDil2/user-hS61ZsZAYtg5kQFwwsXdahCO/img-iCBQIru17mAFztw7ktnyHv9I.png?st=2024-10-31T11%3A00%3A16Z&se=2024-10-31T13%3A00%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2024-10-31T01%3A19%3A25Z&ske=2024-11-01T01%3A19%3A25Z&sks=b&skv=2024-08-04&sig=aU7G517F8bUZt0gk72s7508SEIB/9oH9qK5w2GptP04%3D" width=400 height=400/>
 
 
 ## 📊 Analysis
