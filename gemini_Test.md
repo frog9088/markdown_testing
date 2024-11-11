@@ -1,15 +1,17 @@
 ## Service Code Documentation
 
+This documentation provides a comprehensive overview of the `MemberService` code, including its structure, implementation details, and interactions with other components.
+
 ### 1. Overall Structure
 
-This codebase implements a service layer for managing member-related functionalities. It interacts with various domain entities and repositories to provide functionalities like:
+The `MemberService` code is responsible for managing member-related operations within the application. It interacts with various other components, including:
 
-- **Member Registration:** Handles the registration process for new members, including profile information, live information preferences, and interest trips.
-- **Member Profile Management:** Allows updating member profiles, including nickname, birthday, gender, and profile image.
-- **Member Authentication:** Provides methods for checking if a member exists based on email or ID.
-- **Member Authority Management:** Manages member privileges and provides methods for checking member authority and profile image access.
-
-The codebase utilizes the **Strategy Pattern** to implement flexible and extensible logic for handling different aspects of member management, such as recommending trips based on user preferences.
+- **MemberRepository:** Handles persistence operations for `Member` entities.
+- **MemberLiveInformationService:** Manages the association between members and their selected live information.
+- **TripService:** Provides access to trip-related data and functionality.
+- **RecommendTripService:** Handles recommendations and ranking of trips for members.
+- **LiveInformationRepository:** Provides access to live information data.
+- **MemberTripRepository:** Manages the association between members and their visited trips.
 
 **Mermaid Diagram:**
 
@@ -21,311 +23,178 @@ classDiagram
     MemberService <|-- RecommendTripService
     MemberService <|-- LiveInformationRepository
     MemberService <|-- MemberTripRepository
-    MemberRepository <|-- Member
-    MemberLiveInformationService <|-- MemberLiveInformationRepository
-    MemberLiveInformationService <|-- LiveInformationRepository
-    MemberLiveInformationService <|-- MemberRepository
-    TripService <|-- TripRepository
-    TripService <|-- RecommendTripRepository
-    TripService <|-- MemberRepository
-    TripService <|-- MemberTripRepository
-    TripService <|-- TripKeywordRepository
-    TripService <|-- SaveRecommendTripStrategyProvider
-    RecommendTripService <|-- RecommendTripRepository
-    RecommendTripService <|-- MemberRepository
-    RecommendTripService <|-- TripRepository
-    RecommendTripService <|-- TripKeywordRepository
-    LiveInformationRepository <|-- LiveInformation
-    MemberTripRepository <|-- MemberTrip
-    MemberTripRepository <|-- Member
-    MemberTripRepository <|-- Trip
-    TripRepository <|-- Trip
-    TripKeywordRepository <|-- TripKeyword
-    TripKeywordRepository <|-- Trip
-    TripKeywordRepository <|-- Keyword
-    SaveRecommendTripStrategyProvider <|-- RecommendTripStrategy
-    TripFilterStrategyProvider <|-- TripFilterStrategy
 ```
 
 ### 2. Strategy Pattern Implementation
 
-The Strategy Pattern is implemented in the `TripService` and `RecommendTripService` classes to handle different filtering and recommendation logic based on user preferences.
-
-**Strategy Interface:**
-
-- **`TripFilterStrategy`:** Defines the interface for filtering trips based on specific criteria.
-- **`RecommendTripStrategy`:** Defines the interface for recommending trips based on user preferences.
-
-**Concrete Strategy Classes:**
-
-- **`TripFilterStrategyProvider`:** Provides concrete implementations of `TripFilterStrategy` based on the filter type (e.g., `LIVE_INFO_STRATEGY`).
-- **`SaveRecommendTripStrategyProvider`:** Provides concrete implementations of `RecommendTripStrategy` based on the number of recommended trips.
-
-**Context Class:**
-
-- **`TripService`:** Uses the `TripFilterStrategyProvider` to select and execute the appropriate filtering strategy.
-- **`RecommendTripService`:** Uses the `SaveRecommendTripStrategyProvider` to select and execute the appropriate recommendation strategy.
+The code does not explicitly implement the Strategy pattern. However, it utilizes the concept of dependency injection to achieve similar functionality. The `TripService` and `RecommendTripService` classes rely on `TripFilterStrategyProvider` and `SaveRecommendTripStrategyProvider` respectively, which act as context classes for selecting and executing different strategies based on specific criteria.
 
 **Class Diagram:**
 
 ```mermaid
 classDiagram
-    TripFilterStrategy <|.. TripFilterStrategyProvider
-    RecommendTripStrategy <|.. SaveRecommendTripStrategyProvider
-    TripService --|> TripFilterStrategyProvider
-    RecommendTripService --|> SaveRecommendTripStrategyProvider
+    TripFilterStrategyProvider <|.. TripFilterStrategy
+    SaveRecommendTripStrategyProvider <|.. RecommendTripStrategy
 ```
 
 ### 3. Detailed Component Documentation
 
 #### a. Classes
 
-**1. `MemberService`:**
+**MemberService:**
 
-- **Purpose:** Provides functionalities for managing member-related operations, including registration, profile management, authentication, and authority management.
+- **Purpose:** Provides a centralized interface for managing member-related operations.
 - **Attributes:**
-    - `memberRepository`: Repository for accessing and manipulating member data.
-    - `memberLiveInformationService`: Service for managing member live information preferences.
-    - `tripService`: Service for managing trip-related operations.
-    - `recommendTripService`: Service for managing trip recommendations.
-    - `liveInformationRepository`: Repository for accessing and manipulating live information data.
-    - `memberTripRepository`: Repository for accessing and manipulating member trip data.
-- **Role:** Acts as the central service for all member-related operations, coordinating interactions with other services and repositories.
-
-**2. `Member`:**
-
-- **Purpose:** Represents a member entity, storing information like email, nickname, profile image, social type, birthday, gender, and authority.
-- **Attributes:**
-    - `id`: Unique identifier for the member.
-    - `email`: Member's email address.
-    - `nickName`: Member's nickname.
-    - `profileImageUrl`: URL of the member's profile image.
-    - `socialType`: Member's social login type.
-    - `birthday`: Member's birthday.
-    - `genderType`: Member's gender.
-    - `authority`: Member's authority level.
-- **Role:** Represents a member in the system, storing essential information and providing methods for managing member data.
-
-**3. `MemberLiveInformation`:**
-
-- **Purpose:** Represents the association between a member and their preferred live information.
-- **Attributes:**
-    - `id`: Unique identifier for the association.
-    - `liveInformation`: The preferred live information.
-    - `member`: The member associated with the live information.
-- **Role:** Establishes a relationship between members and their preferred live information, allowing for personalized recommendations and filtering.
-
-**4. `MemberTrip`:**
-
-- **Purpose:** Represents the association between a member and a trip, tracking the member's interaction with the trip.
-- **Attributes:**
-    - `id`: Unique identifier for the association.
-    - `member`: The member associated with the trip.
-    - `trip`: The trip associated with the member.
-    - `visitedCount`: Number of times the member has visited the trip.
-- **Role:** Tracks member interactions with trips, allowing for personalized recommendations and filtering based on visited trips.
-
-**5. `Trip`:**
-
-- **Purpose:** Represents a trip entity, storing information like name, place name, content ID, description, trip image URL, visited count, and coordinates.
-- **Attributes:**
-    - `id`: Unique identifier for the trip.
-    - `name`: Name of the trip.
-    - `placeName`: Name of the place where the trip is located.
-    - `contentId`: Unique identifier for the trip content.
-    - `description`: Description of the trip.
-    - `tripImageUrl`: URL of the trip image.
-    - `visitedCount`: Number of times the trip has been visited.
-    - `coordinateX`: X-coordinate of the trip location.
-    - `coordinateY`: Y-coordinate of the trip location.
-- **Role:** Represents a trip in the system, storing essential information and providing methods for managing trip data.
-
-**6. `TripKeyword`:**
-
-- **Purpose:** Represents the association between a trip and a keyword, allowing for keyword-based filtering and searching.
-- **Attributes:**
-    - `id`: Unique identifier for the association.
-    - `trip`: The trip associated with the keyword.
-    - `keyword`: The keyword associated with the trip.
-- **Role:** Establishes a relationship between trips and keywords, enabling keyword-based filtering and searching for trips.
-
-**7. `LiveInformation`:**
-
-- **Purpose:** Represents a live information entity, storing information like name.
-- **Attributes:**
-    - `id`: Unique identifier for the live information.
-    - `name`: Name of the live information.
-- **Role:** Represents a live information category in the system, storing essential information and providing methods for managing live information data.
+    - `memberRepository`: An instance of `MemberRepository` for database interactions.
+    - `memberLiveInformationService`: An instance of `MemberLiveInformationService` for managing member-live information associations.
+    - `tripService`: An instance of `TripService` for accessing trip-related data and functionality.
+    - `recommendTripService`: An instance of `RecommendTripService` for handling trip recommendations and ranking.
+    - `liveInformationRepository`: An instance of `LiveInformationRepository` for accessing live information data.
+    - `memberTripRepository`: An instance of `MemberTripRepository` for managing member-trip associations.
+- **Role:** Acts as a central point of access for all member-related operations, delegating tasks to other components as needed.
 
 #### b. Methods and Functions
 
-**1. `MemberService`:**
+**findById(Long id):**
 
-- **`findById(Long id)`:** Retrieves a member by their ID.
-    - **Parameters:**
-        - `id`: The ID of the member to retrieve.
-    - **Return Value:** A `MemberResponse` object containing the member's information.
-- **`findByEmail(String email)`:** Retrieves a member by their email address.
-    - **Parameters:**
-        - `email`: The email address of the member to retrieve.
-    - **Return Value:** A `Member` object representing the found member.
-- **`existsByEmail(String email)`:** Checks if a member exists with the given email address.
-    - **Parameters:**
-        - `email`: The email address to check.
-    - **Return Value:** `true` if a member exists with the given email, `false` otherwise.
-- **`existsById(Long id)`:** Checks if a member exists with the given ID.
-    - **Parameters:**
-        - `id`: The ID to check.
-    - **Return Value:** `true` if a member exists with the given ID, `false` otherwise.
-- **`save(Member member)`:** Saves a member to the database.
-    - **Parameters:**
-        - `member`: The member object to save.
-    - **Return Value:** None.
-- **`existsByNickname(String nickname)`:** Checks if a member exists with the given nickname.
-    - **Parameters:**
-        - `nickname`: The nickname to check.
-    - **Return Value:** `true` if a member exists with the given nickname, `false` otherwise.
-- **`signUpByProfile(long memberId, SignUpProfileRequest request)`:** Completes the member registration process by saving the member's profile information.
-    - **Parameters:**
-        - `memberId`: The ID of the member to update.
-        - `request`: A `SignUpProfileRequest` object containing the member's profile information.
-    - **Return Value:** None.
-- **`signUpByLiveInfo(long memberId, SignUpLiveInfoRequest request)`:** Saves the member's preferred live information.
-    - **Parameters:**
-        - `memberId`: The ID of the member to update.
-        - `request`: A `SignUpLiveInfoRequest` object containing the member's preferred live information.
-    - **Return Value:** None.
-- **`signUpByInterestTrips(long memberId, SignUpInterestTripsRequest request)`:** Saves the member's interest trips and changes their authority to `REGULAR_MEMBER`.
-    - **Parameters:**
-        - `memberId`: The ID of the member to update.
-        - `request`: A `SignUpInterestTripsRequest` object containing the member's interest trips.
-    - **Return Value:** None.
-- **`updateByProfile(long memberId, UpdateProfileRequest request)`:** Updates the member's profile information.
-    - **Parameters:**
-        - `memberId`: The ID of the member to update.
-        - `request`: An `UpdateProfileRequest` object containing the updated profile information.
-    - **Return Value:** None.
-- **`checkIsAlreadyExistNickname(String nickname)`:** Checks if a nickname already exists and throws an exception if it does.
-    - **Parameters:**
-        - `nickname`: The nickname to check.
-    - **Return Value:** None.
-- **`findMemberAuthorityAndProfileImg(long memberId)`:** Retrieves the member's authority and profile image URL.
-    - **Parameters:**
-        - `memberId`: The ID of the member to retrieve information for.
-    - **Return Value:** A `FindMemberAuthorityAndProfileResponse` object containing the member's authority and profile image URL.
+- **Purpose:** Retrieves a `Member` entity by its ID.
+- **Parameters:**
+    - `id`: The ID of the member to retrieve.
+- **Return value:** A `MemberResponse` object containing member details.
+- **Code Example:**
+```java
+MemberResponse memberResponse = memberService.findById(1L);
+```
 
-**2. `Member`:**
+**findByEmail(String email):**
 
-- **`changePrivilege(Authority authority)`:** Changes the member's authority level.
-    - **Parameters:**
-        - `authority`: The new authority level to assign to the member.
-    - **Return Value:** None.
-- **`isNicknameChanged(String inputNickname)`:** Checks if the member's nickname has changed.
-    - **Parameters:**
-        - `inputNickname`: The new nickname to compare against.
-    - **Return Value:** `true` if the nickname has changed, `false` otherwise.
-- **`getId()`:** Returns the member's ID.
-    - **Parameters:** None.
-    - **Return Value:** The member's ID.
-- **`getProfileImageUrl()`:** Returns the member's profile image URL.
-    - **Parameters:** None.
-    - **Return Value:** The member's profile image URL.
-- **`getGenderType()`:** Returns the member's gender.
-    - **Parameters:** None.
-    - **Return Value:** The member's gender.
-- **`getNickName()`:** Returns the member's nickname.
-    - **Parameters:** None.
-    - **Return Value:** The member's nickname.
-- **`getBirthday()`:** Returns the member's birthday.
-    - **Parameters:** None.
-    - **Return Value:** The member's birthday.
-- **`getAuthority()`:** Returns the member's authority level.
-    - **Parameters:** None.
-    - **Return Value:** The member's authority level.
-- **`getSocialType()`:** Returns the member's social login type.
-    - **Parameters:** None.
-    - **Return Value:** The member's social login type.
-- **`getEmail()`:** Returns the member's email address.
-    - **Parameters:** None.
-    - **Return Value:** The member's email address.
+- **Purpose:** Retrieves a `Member` entity by its email address.
+- **Parameters:**
+    - `email`: The email address of the member to retrieve.
+- **Return value:** A `Member` object.
+- **Code Example:**
+```java
+Member member = memberService.findByEmail("test@example.com");
+```
 
-**3. `MemberLiveInformation`:**
+**existsByEmail(String email):**
 
-- **`getId()`:** Returns the association's ID.
-    - **Parameters:** None.
-    - **Return Value:** The association's ID.
-- **`getLiveInformation()`:** Returns the associated live information.
-    - **Parameters:** None.
-    - **Return Value:** The associated live information.
-- **`getMember()`:** Returns the associated member.
-    - **Parameters:** None.
-    - **Return Value:** The associated member.
+- **Purpose:** Checks if a member with the given email address exists.
+- **Parameters:**
+    - `email`: The email address to check.
+- **Return value:** `true` if a member with the given email exists, `false` otherwise.
+- **Code Example:**
+```java
+boolean exists = memberService.existsByEmail("test@example.com");
+```
 
-**4. `MemberTrip`:**
+**existsById(Long id):**
 
-- **`incrementVisitedCount()`:** Increments the visited count for the associated trip.
-    - **Parameters:** None.
-    - **Return Value:** None.
-- **`getVisitedCount()`:** Returns the visited count for the associated trip.
-    - **Parameters:** None.
-    - **Return Value:** The visited count.
-- **`getTrip()`:** Returns the associated trip.
-    - **Parameters:** None.
-    - **Return Value:** The associated trip.
+- **Purpose:** Checks if a member with the given ID exists.
+- **Parameters:**
+    - `id`: The ID to check.
+- **Return value:** `true` if a member with the given ID exists, `false` otherwise.
+- **Code Example:**
+```java
+boolean exists = memberService.existsById(1L);
+```
 
-**5. `Trip`:**
+**save(Member member):**
 
-- **`incrementVisitedCount()`:** Increments the visited count for the trip.
-    - **Parameters:** None.
-    - **Return Value:** None.
-- **`getName()`:** Returns the trip's name.
-    - **Parameters:** None.
-    - **Return Value:** The trip's name.
-- **`getContentId()`:** Returns the trip's content ID.
-    - **Parameters:** None.
-    - **Return Value:** The trip's content ID.
-- **`getId()`:** Returns the trip's ID.
-    - **Parameters:** None.
-    - **Return Value:** The trip's ID.
-- **`getDescription()`:** Returns the trip's description.
-    - **Parameters:** None.
-    - **Return Value:** The trip's description.
-- **`getPlaceName()`:** Returns the trip's place name.
-    - **Parameters:** None.
-    - **Return Value:** The trip's place name.
-- **`getTripImageUrl()`:** Returns the trip's image URL.
-    - **Parameters:** None.
-    - **Return Value:** The trip's image URL.
-- **`getVisitedCount()`:** Returns the trip's visited count.
-    - **Parameters:** None.
-    - **Return Value:** The trip's visited count.
-- **`getCoordinateX()`:** Returns the trip's X-coordinate.
-    - **Parameters:** None.
-    - **Return Value:** The trip's X-coordinate.
-- **`getCoordinateY()`:** Returns the trip's Y-coordinate.
-    - **Parameters:** None.
-    - **Return Value:** The trip's Y-coordinate.
+- **Purpose:** Saves a `Member` entity to the database.
+- **Parameters:**
+    - `member`: The `Member` object to save.
+- **Return value:** None.
+- **Code Example:**
+```java
+Member member = new Member("test@example.com", SocialType.GOOGLE, "https://example.com/profile.jpg");
+memberService.save(member);
+```
 
-**6. `TripKeyword`:**
+**existsByNickname(String nickname):**
 
-- **`getId()`:** Returns the association's ID.
-    - **Parameters:** None.
-    - **Return Value:** The association's ID.
-- **`getTrip()`:** Returns the associated trip.
-    - **Parameters:** None.
-    - **Return Value:** The associated trip.
-- **`getKeyword()`:** Returns the associated keyword.
-    - **Parameters:** None.
-    - **Return Value:** The associated keyword.
+- **Purpose:** Checks if a member with the given nickname exists.
+- **Parameters:**
+    - `nickname`: The nickname to check.
+- **Return value:** `true` if a member with the given nickname exists, `false` otherwise.
+- **Code Example:**
+```java
+boolean exists = memberService.existsByNickname("TestUser");
+```
 
-**7. `LiveInformation`:**
+**signUpByProfile(long memberId, SignUpProfileRequest request):**
 
-- **`getId()`:** Returns the live information's ID.
-    - **Parameters:** None.
-    - **Return Value:** The live information's ID.
-- **`getName()`:** Returns the live information's name.
-    - **Parameters:** None.
-    - **Return Value:** The live information's name.
+- **Purpose:** Completes the signup process by updating the member's profile information.
+- **Parameters:**
+    - `memberId`: The ID of the member to update.
+    - `request`: A `SignUpProfileRequest` object containing the profile details.
+- **Return value:** None.
+- **Code Example:**
+```java
+SignUpProfileRequest request = new SignUpProfileRequest("TestUser", LocalDate.of(1990, 1, 1), GenderType.MALE);
+memberService.signUpByProfile(1L, request);
+```
+
+**signUpByLiveInfo(long memberId, SignUpLiveInfoRequest request):**
+
+- **Purpose:** Completes the signup process by associating the member with their selected live information.
+- **Parameters:**
+    - `memberId`: The ID of the member to update.
+    - `request`: A `SignUpLiveInfoRequest` object containing the list of live information names.
+- **Return value:** None.
+- **Code Example:**
+```java
+SignUpLiveInfoRequest request = new SignUpLiveInfoRequest(List.of("Food", "Shopping"));
+memberService.signUpByLiveInfo(1L, request);
+```
+
+**signUpByInterestTrips(long memberId, SignUpInterestTripsRequest request):**
+
+- **Purpose:** Completes the signup process by associating the member with their selected interest trips.
+- **Parameters:**
+    - `memberId`: The ID of the member to update.
+    - `request`: A `SignUpInterestTripsRequest` object containing the list of trip content IDs.
+- **Return value:** None.
+- **Code Example:**
+```java
+SignUpInterestTripsRequest request = new SignUpInterestTripsRequest(List.of(1L, 2L, 3L, 4L, 5L));
+memberService.signUpByInterestTrips(1L, request);
+```
+
+**updateByProfile(long memberId, UpdateProfileRequest request):**
+
+- **Purpose:** Updates the member's profile information.
+- **Parameters:**
+    - `memberId`: The ID of the member to update.
+    - `request`: A `UpdateProfileRequest` object containing the updated profile details.
+- **Return value:** None.
+- **Code Example:**
+```java
+UpdateProfileRequest request = new UpdateProfileRequest("UpdatedUser", LocalDate.of(1991, 2, 2), GenderType.FEMALE, "https://example.com/updated_profile.jpg");
+memberService.updateByProfile(1L, request);
+```
+
+**checkIsAlreadyExistNickname(String nickname):**
+
+- **Purpose:** Checks if a nickname already exists in the database.
+- **Parameters:**
+    - `nickname`: The nickname to check.
+- **Return value:** None.
+- **Code Example:**
+```java
+memberService.checkIsAlreadyExistNickname("TestUser");
+```
+
+**findMemberAuthorityAndProfileImg(long memberId):**
+
+- **Purpose:** Retrieves the member's authority and profile image URL.
+- **Parameters:**
+    - `memberId`: The ID of the member to retrieve information for.
+- **Return value:** A `FindMemberAuthorityAndProfileResponse` object containing the authority and profile image URL.
+- **Code Example:**
+```java
+FindMemberAuthorityAndProfileResponse response = memberService.findMemberAuthorityAndProfileImg(1L);
+```
 
 ### 4. Implementation Flow
 
@@ -337,132 +206,23 @@ sequenceDiagram
     participant MemberService
     participant MemberRepository
     participant MemberLiveInformationService
-    participant LiveInformationRepository
     participant TripService
     participant RecommendTripService
-    participant TripRepository
+    participant LiveInformationRepository
     participant MemberTripRepository
-    participant TripKeywordRepository
-    participant SaveRecommendTripStrategyProvider
-    participant RecommendTripStrategy
-    participant TripFilterStrategyProvider
-    participant TripFilterStrategy
 
     activate Client
-    Client->>MemberService: signUpByProfile(memberId, request)
+    Client->MemberService: findById(1L)
     activate MemberService
-    MemberService->>MemberRepository: save(member)
+    MemberService->MemberRepository: findById(1L)
     activate MemberRepository
-    MemberRepository-->>MemberService: saved
+    MemberRepository->MemberService: Member
     deactivate MemberRepository
+    MemberService->Client: MemberResponse
     deactivate MemberService
-    deactivate Client
-
-    activate Client
-    Client->>MemberService: signUpByLiveInfo(memberId, request)
-    activate MemberService
-    MemberService->>MemberLiveInformationService: saveAll(memberLiveInformationList)
-    activate MemberLiveInformationService
-    MemberLiveInformationService->>LiveInformationRepository: findByName(liveInfoName)
-    activate LiveInformationRepository
-    LiveInformationRepository-->>MemberLiveInformationService: found
-    deactivate LiveInformationRepository
-    MemberLiveInformationService->>MemberLiveInformationRepository: saveAll(memberLiveInformationList)
-    activate MemberLiveInformationRepository
-    MemberLiveInformationRepository-->>MemberLiveInformationService: saved
-    deactivate MemberLiveInformationRepository
-    deactivate MemberLiveInformationService
-    deactivate MemberService
-    deactivate Client
-
-    activate Client
-    Client->>MemberService: signUpByInterestTrips(memberId, request)
-    activate MemberService
-    MemberService->>TripService: findByContentId(contentId)
-    activate TripService
-    TripService->>TripRepository: findByContentId(contentId)
-    activate TripRepository
-    TripRepository-->>TripService: found
-    deactivate TripRepository
-    MemberService->>RecommendTripService: saveByRank(trip, member, ranking)
-    activate RecommendTripService
-    RecommendTripService->>RecommendTripRepository: save(recommendTrip)
-    activate RecommendTripRepository
-    RecommendTripRepository-->>RecommendTripService: saved
-    deactivate RecommendTripRepository
-    deactivate RecommendTripService
-    MemberService->>MemberTripRepository: save(memberTrip)
-    activate MemberTripRepository
-    MemberTripRepository-->>MemberService: saved
-    deactivate MemberTripRepository
-    deactivate TripService
-    MemberService->>Member: changePrivilege(Authority.REGULAR_MEMBER)
-    activate Member
-    Member-->>MemberService: privilege changed
-    deactivate Member
-    deactivate MemberService
-    deactivate Client
-
-    activate Client
-    Client->>TripService: findWithSimilarOtherTrips(tripId, memberId)
-    activate TripService
-    TripService->>TripRepository: findByIdForUpdate(tripId)
-    activate TripRepository
-    TripRepository-->>TripService: found
-    deactivate TripRepository
-    TripService->>TripFilterStrategyProvider: findTripsByFilterStrategy(LIVE_INFO_STRATEGY)
-    activate TripFilterStrategyProvider
-    TripFilterStrategyProvider-->>TripService: found
-    deactivate TripFilterStrategyProvider
-    TripService->>TripFilterStrategy: execute(filterInfo)
-    activate TripFilterStrategy
-    TripFilterStrategy-->>TripService: filteredTrips
-    deactivate TripFilterStrategy
-    TripService->>Trip: incrementVisitedCount()
-    activate Trip
-    Trip-->>TripService: visitedCount incremented
-    deactivate Trip
-    TripService->>MemberRepository: findById(memberId)
-    activate MemberRepository
-    MemberRepository-->>TripService: found
-    deactivate MemberRepository
-    TripService->>RecommendTripRepository: findByMemberOrderByRankingDesc(member)
-    activate RecommendTripRepository
-    RecommendTripRepository-->>TripService: found
-    deactivate RecommendTripRepository
-    TripService->>MemberTripRepository: existsByMemberAndTrip(member, trip)
-    activate MemberTripRepository
-    MemberTripRepository-->>TripService: exists
-    deactivate MemberTripRepository
-    TripService->>MemberTripRepository: findByMemberAndTrip(member, trip)
-    activate MemberTripRepository
-    MemberTripRepository-->>TripService: found
-    deactivate MemberTripRepository
-    TripService->>MemberTrip: incrementVisitedCount()
-    activate MemberTrip
-    MemberTrip-->>TripService: visitedCount incremented
-    deactivate MemberTrip
-    TripService->>SaveRecommendTripStrategyProvider: findRecommendTripStrategy(recommendTrips.size())
-    activate SaveRecommendTripStrategyProvider
-    SaveRecommendTripStrategyProvider-->>TripService: found
-    deactivate SaveRecommendTripStrategyProvider
-    TripService->>RecommendTripStrategy: execute(trip, member, recommendTrips)
-    activate RecommendTripStrategy
-    RecommendTripStrategy-->>TripService: recommendations updated
-    deactivate RecommendTripStrategy
-    TripService->>TripKeywordRepository: findByTrip(trip)
-    activate TripKeywordRepository
-    TripKeywordRepository-->>TripService: found
-    deactivate TripKeywordRepository
-    TripService->>TripKeywordRepository: findByTrips(filteredSimilarTrips)
-    activate TripKeywordRepository
-    TripKeywordRepository-->>TripService: found
-    deactivate TripKeywordRepository
-    TripService-->>Client: FindTripWithSimilarTripsResponse
-    deactivate TripService
     deactivate Client
 ```
 
-### 5. Conclusion
+This sequence diagram illustrates the flow of execution for the `findById` method. The client calls the `findById` method on `MemberService`, which in turn delegates the request to `MemberRepository`. `MemberRepository` retrieves the `Member` entity from the database and returns it to `MemberService`. Finally, `MemberService` constructs a `MemberResponse` object and returns it to the client.
 
-This documentation provides a comprehensive overview of the service code, including its structure, strategy pattern implementation, detailed component documentation, and implementation flow. This documentation aims to help developers understand the codebase and its functionalities, enabling them to effectively work with and extend the code.
+This documentation provides a comprehensive understanding of the `MemberService` code, its interactions with other components, and its role in the overall application. It can be used as a reference for developers working with the codebase, enabling them to understand its functionality and effectively utilize its features.
