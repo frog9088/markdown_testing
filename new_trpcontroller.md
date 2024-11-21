@@ -85,3 +85,39 @@ sequenceDiagram
 
 ### Conclusion
 This code structure provides a clear separation of concerns, with DTOs for data transfer, a service layer for business logic, and a controller layer for handling HTTP requests. The use of annotations for authentication and the handling of exceptions enhances the robustness of the application. The flow diagram visually represents how these components interact during various operations.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant AuthController
+    participant AuthService
+    participant MemberService
+    participant TokenManager
+    participant Database
+
+    Client->>AuthController: HTTP 요청 (URI 생성)
+    AuthController->>AuthService: generateUri 호출
+    AuthService-->>AuthController: URI 반환
+    AuthController-->>Client: URI 응답
+
+    Client->>AuthController: HTTP 요청 (로그인)
+    AuthController->>AuthService: generateTokenWithCode 호출
+    AuthService->>MemberService: existsByEmail 호출
+    MemberService-->>AuthService: 존재 여부 반환
+    AuthService->>MemberService: save 호출 (새 멤버)
+    MemberService-->>AuthService: 저장 완료
+    AuthService->>TokenManager: createMemberToken 호출
+    TokenManager-->>AuthService: MemberToken 반환
+    AuthService-->>AuthController: MemberToken 반환
+    AuthController-->>Client: 액세스 토큰 응답
+
+    Client->>AuthController: HTTP 요청 (로그인 연장)
+    AuthController->>AuthService: generateRenewalAccessToken 호출
+    AuthService-->>AuthController: RenewalAccessTokenResponse 반환
+    AuthController-->>Client: 새로운 액세스 토큰 응답
+
+    Client->>AuthController: HTTP 요청 (로그아웃)
+    AuthController->>AuthService: removeRefreshToken 호출
+    AuthService-->>AuthController: 로그아웃 완료
+    AuthController-->>Client: 응답 없음
+```
