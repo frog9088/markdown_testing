@@ -1,5 +1,3 @@
-아래는 제공된 Java 코드에 대한 아키텍처 문서입니다. 이 문서는 시스템의 구조와 각 컴포넌트의 역할을 설명합니다.
-
 # 시스템 아키텍처 문서
 
 ## 전체 구조
@@ -9,63 +7,177 @@ graph TD
     B --> C[AuthService]
     C --> D[TokenManager]
     C --> E[MemberService]
-    D --> F[MemberToken]
-    E --> G[Member]
+    D --> F[Database]
+    E --> F
 ```
 
 ## 시스템 흐름
 ```mermaid
 sequenceDiagram
-    Client->>AuthController: Request for URI
-    AuthController->>AuthService: generateUri()
-    AuthService-->>AuthController: Return URI
-    AuthController->>Client: Send URI
+    Client->>AuthController: Request for OAuth URI
+    AuthController->>AuthService: generateUri(providerName)
+    AuthService->>OAuthProvider: getOAuthUriProvider(providerName)
+    OAuthProvider->>AuthService: Return OAuth URI
+    AuthService->>AuthController: Return OAuth URI
+    AuthController->>Client: Response with OAuth URI
 
-    Client->>AuthController: Login Request
-    AuthController->>AuthService: generateTokenWithCode()
-    AuthService-->>AuthController: Return MemberToken
-    AuthController->>Client: Send Access Token
+    Client->>AuthController: Login with code
+    AuthController->>AuthService: generateTokenWithCode(code, providerName)
+    AuthService->>OAuthClient: getOAuthMember(code)
+    OAuthClient->>AuthService: Return OAuthMember
+    AuthService->>MemberService: findOrCreateMember(oAuthMember, providerName)
+    MemberService->>AuthService: Return found or created Member
+    AuthService->>TokenManager: createMemberToken(memberId)
+    TokenManager->>AuthService: Return MemberToken
+    AuthService->>AuthController: Return MemberToken
+    AuthController->>Client: Response with access token and set refresh token in cookie
 
-    Client->>AuthController: Extend Login Request
-    AuthController->>AuthService: generateRenewalAccessToken()
-    AuthService-->>AuthController: Return RenewalAccessTokenResponse
-    AuthController->>Client: Send New Access Token
+    Client->>AuthController: Extend login with refresh token
+    AuthController->>AuthService: generateRenewalAccessToken(refreshToken)
+    AuthService->>TokenManager: generateRenewalAccessToken(refreshToken)
+    TokenManager->>AuthService: Return RenewalAccessToken
+    AuthService->>AuthController: Return RenewalAccessTokenResponse
+    AuthController->>Client: Response with new access token
 
-    Client->>AuthController: Logout Request
-    AuthController->>AuthService: removeRefreshToken()
-    AuthService-->>AuthController: Refresh Token Removed
-    AuthController->>Client: No Content Response
+    Client->>AuthController: Logout
+    AuthController->>AuthService: removeRefreshToken(refreshToken)
+    AuthService->>TokenManager: removeRefreshToken(refreshToken)
+    AuthService->>AuthController: Acknowledge removal
+    AuthController->>Client: Response with no content
 ```
 
 ## 주요 컴포넌트 설명
 
 ### AuthController
-- **역할과 책임**: 클라이언트의 요청을 처리하고, 서비스 계층과의 상호작용을 통해 인증 관련 작업을 수행합니다.
-- **주요 메서드**:
-  - `generateUri()`: OAuth 제공자로부터 인증 URI를 생성합니다.
-  - `login()`: OAuth 인증 코드를 사용하여 로그인하고, 액세스 토큰을 생성합니다.
-  - `extendLogin()`: 기존의 리프레시 토큰을 사용하여 새로운 액세스 토큰을 생성합니다.
-  - `logout()`: 리프레시 토큰을 제거하여 로그아웃을 처리합니다.
+- 역할과 책임: 클라이언트의 인증 요청을 처리하고, AuthService와 상호작용하여 인증 관련 작업을 수행합니다.
+- 주요 엔드포인트:
+  - `GET /api/auth/{oAuthProvider}/link`: OAuth URI 생성
+  - `POST /api/auth/{oAuthProvider}/login`: 로그인 처리
+  - `POST /api/auth/extend/login`: 액세스 토큰 연장
+  - `DELETE /api/auth/logout`: 로그아웃 처리
 
 ### AuthService
-- **역할과 책임**: 인증 관련 비즈니스 로직을 처리합니다. OAuth 제공자와의 상호작용, 멤버 생성 및 토큰 관리를 담당합니다.
-- **주요 메서드**:
-  - `generateTokenWithCode()`: OAuth 인증 코드를 사용하여 멤버 토큰을 생성합니다.
-  - `generateUri()`: OAuth 제공자로부터 URI를 생성합니다.
-  - `generateRenewalAccessToken()`: 리프레시 토큰을 사용하여 새로운 액세스 토큰을 생성합니다.
-  - `removeRefreshToken()`: 로그아웃 시 리프레시 토큰을 제거합니다.
-  - `extractMemberId()`: 액세스 토큰에서 멤버 ID를 추출합니다.
+- 비즈니스 로직을 처리하며, OAuthProvider와 MemberService, TokenManager와 상호작용합니다.
+- 주요 메서드:
+  - `generateTokenWithCode`: OAuth 코드를 사용하여 토큰 생성
+  - `generateUri`: OAuth URI 생성
+  - `generateRenewalAccessToken`: 리프레시 토큰을 사용하여 액세스 토큰 연장
+  - `removeRefreshToken`: 로그아웃 시 리프레시 토큰 제거
 
 ### TokenManager
-- **역할과 책임**: 토큰 생성 및 검증을 담당합니다. 액세스 토큰과 리프레시 토큰의 생성 및 관리 기능을 제공합니다.
+- 토큰 생성 및 관리 기능을 제공합니다.
+- 주요 메서드:
+  - `createMemberToken`: 멤버 ID로부터 멤버 토큰 생성
+  - `generateRenewalAccessToken`: 리프레시 토큰으로부터 새로운 액세스 토큰 생성
+  - `removeRefreshToken`: 리프레시 토큰 제거
 
 ### MemberService
-- **역할과 책임**: 멤버 관련 데이터의 CRUD 작업을 처리합니다. 멤버의 존재 여부를 확인하고, 새로운 멤버를 생성합니다.
+- 멤버 관련 데이터 접근 및 관리 기능을 제공합니다.
+- 주요 메서드:
+  - `existsByEmail`: 이메일로 멤버 존재 여부 확인
+  - `save`: 새로운 멤버 저장
+  - `findByEmail`: 이메일로 멤버 조회
 
-### MemberToken
-- **역할과 책임**: 액세스 토큰과 리프레시 토큰을 포함하는 데이터 구조입니다. 인증 과정에서 생성된 토큰 정보를 저장합니다.
+## API 엔드포인트
 
-## 주의사항
-1. 각 컴포넌트의 역할과 책임을 명확히 이해하고, 필요 시 추가적인 설명을 덧붙이세요.
-2. 시스템의 흐름을 시퀀스 다이어그램으로 표현하여 클라이언트와 서버 간의 상호작용을 명확히 하세요.
-3. 각 메서드의 기능과 사용 예를 문서화하여 개발자들이 쉽게 이해할 수 있도록 하세요.
+### OAuth URI 생성
+**GET** `/api/auth/{oAuthProvider}/link`
+
+#### 설명
+주어진 OAuth 제공자에 대한 인증 URI를 생성합니다.
+
+#### 요청
+##### Parameters
+| 이름         | 타입   | 필수 여부 | 설명                     |
+|--------------|--------|-----------|--------------------------|
+| oAuthProvider| string | Required  | OAuth 제공자 이름       |
+
+#### 응답
+##### Success Response
+- Status: 200 OK
+```json
+{
+    "uri": "https://example.com/oauth/authorize"
+}
+```
+
+### 로그인
+**POST** `/api/auth/{oAuthProvider}/login`
+
+#### 설명
+OAuth 코드를 사용하여 로그인하고, 액세스 토큰 및 리프레시 토큰을 생성합니다.
+
+#### 요청
+##### Parameters
+| 이름         | 타입   | 필수 여부 | 설명                     |
+|--------------|--------|-----------|--------------------------|
+| oAuthProvider| string | Required  | OAuth 제공자 이름       |
+
+##### Request Body
+```json
+{
+    "code": "authorization_code"
+}
+```
+
+#### 응답
+##### Success Response
+- Status: 201 Created
+```json
+{
+    "accessToken": "access_token_value"
+}
+```
+
+### 액세스 토큰 연장
+**POST** `/api/auth/extend/login`
+
+#### 설명
+리프레시 토큰을 사용하여 새로운 액세스 토큰을 생성합니다.
+
+#### 요청
+##### Request Body
+```json
+{
+    "refreshToken": "refresh_token_value"
+}
+```
+
+#### 응답
+##### Success Response
+- Status: 201 Created
+```json
+{
+    "accessToken": "new_access_token_value"
+}
+```
+
+### 로그아웃
+**DELETE** `/api/auth/logout`
+
+#### 설명
+로그아웃 요청을 처리하고 리프레시 토큰을 제거합니다.
+
+#### 요청
+##### Request Body
+```json
+{
+    "refreshToken": "refresh_token_value"
+}
+```
+
+#### 응답
+##### Success Response
+- Status: 204 No Content
+```json
+{}
+```
+
+## 오류 응답 상태 코드
+- **400 Bad Request**: 잘못된 요청 형식
+- **401 Unauthorized**: 인증 실패
+- **404 Not Found**: 요청한 리소스가 존재하지 않음
+- **500 Internal Server Error**: 서버 오류
+
+## 인증 및 권한
+- 모든 API 엔드포인트는 적절한 인증이 필요합니다. 리프레시 토큰은 쿠키를 통해 전달되어야 하며, 액세스 토큰은 요청 헤더에 포함되어야 합니다.
